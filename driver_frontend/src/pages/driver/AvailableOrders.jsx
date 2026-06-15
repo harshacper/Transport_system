@@ -10,7 +10,7 @@ const AvailableOrders = () => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/orders/available', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/available`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setOrders(res.data);
@@ -22,7 +22,7 @@ const AvailableOrders = () => {
 
     fetchOrders();
 
-    const socket = io('http://localhost:5000');
+    const socket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
     socket.on('new_order', (order) => {
       setOrders(prev => [order, ...prev]);
       alert('New Order Available!');
@@ -35,7 +35,7 @@ const AvailableOrders = () => {
     try {
       const token = localStorage.getItem('token');
       // Assume a route exists to accept order
-      await axios.put(`http://localhost:5000/api/orders/${orderId}/accept`, {}, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/accept`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOrders(orders.filter(o => o._id !== orderId));

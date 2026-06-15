@@ -38,7 +38,7 @@ const CreateOrder = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/orders', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('Order created successfully!');

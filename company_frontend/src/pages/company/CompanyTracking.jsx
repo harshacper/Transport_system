@@ -39,7 +39,7 @@ const CompanyTracking = () => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/orders/company', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/company`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const inProgress = res.data.filter(o => o.status === 'In Progress');
@@ -51,7 +51,7 @@ const CompanyTracking = () => {
     };
     fetchOrders();
 
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
     setSocket(newSocket);
 
     newSocket.on('receive_location', (data) => {

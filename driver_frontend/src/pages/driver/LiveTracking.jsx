@@ -43,7 +43,7 @@ const LiveTracking = () => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/orders/driver', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/driver`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const inProgress = res.data.filter(o => o.status === 'In Progress');
@@ -55,7 +55,7 @@ const LiveTracking = () => {
     };
     fetchOrders();
 
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
     setSocket(newSocket);
     
     return () => newSocket.close();

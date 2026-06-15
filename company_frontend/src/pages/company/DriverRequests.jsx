@@ -17,7 +17,7 @@ const DriverRequests = () => {
           setCompanyId(userObj._id); // Assuming Company uses userId as their company login identifier, or we can fetch it. Let's just use the profile to get company ID.
         }
 
-        const res = await axios.get('http://localhost:5000/api/orders/company/requests', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/company/requests`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setRequests(res.data);
@@ -32,7 +32,7 @@ const DriverRequests = () => {
 
   useEffect(() => {
     if (!companyId) return;
-    const socket = io('http://localhost:5000');
+    const socket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
     // For simplicity right now, since we only have one socket server, we can listen for our specific room or globally and filter
     // Let's assume the company ID room is used. The backend emits to `company_${order.companyId}`. 
     // To join it, the frontend should emit `join_company_room`. Let's just listen globally for demonstration or emit join.
@@ -49,7 +49,7 @@ const DriverRequests = () => {
   const handleApprove = async (orderId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/orders/${orderId}/approve`, {}, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRequests(requests.filter(r => r._id !== orderId));
