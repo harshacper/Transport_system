@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+
+
+
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String
+  role      String
+  status    String @default("Active")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  company Company?
+  driver  Driver?
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  companyName String
+  ownerName   String
+  gstNumber   String   @unique
+  phone       String
+  address     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders Order[]
+}
+
+
+
+model Driver {
+  id                   String             @id @default(uuid())
+  userId               String             @unique
+  user                 User               @relation(fields: [userId], references: [id])
+  fullName             String
+  phone                String
+  aadhaarNumber        String             @unique
+  drivingLicenseNumber String             @unique
+  bankAccountNo        String?
+  bankIfsc             String?
+  upiId                String?
+  verificationStatus   String @default("Pending")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  orders   Order[]
+  trips    Trip[]
+  vehicles Vehicle[]
+}
+
+
+
+
+
+model Order {
+  id                  String      @id @default(uuid())
+  companyId           String
+  company             Company     @relation(fields: [companyId], references: [id])
+  driverId            String?
+  driver              Driver?     @relation(fields: [driverId], references: [id])
+  pickupAddress       String
+  pickupLat           Float?
+  pickupLng           Float?
+  dropAddress         String
+  dropLat             Float?
+  dropLng             Float?
+  materialType        String
+  materialWeight      Float
+  vehicleTypeRequired String
+  numberOfVehicles    Int         @default(1)
+  pickupDate          DateTime
+  deliveryDate        DateTime
+  loadingCharge       Float       @default(0)
+  unloadingCharge     Float       @default(0)
+  tollCharge          Float       @default(0)
+  billingMethod       String // string representation
+  estimatedCost       Float
+  extraNotes          String?
+  status              String @default("Created")
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  trips    Trip[]
+  payments Payment[]
+}
+
+
+
+model Trip {
+  id               String     @id @default(uuid())
+  orderId          String
+  order            Order      @relation(fields: [orderId], references: [id])
+  driverId         String
+  driver           Driver     @relation(fields: [driverId], references: [id])
+  vehicleId        String
+  vehicle          Vehicle    @relation(fields: [vehicleId], references: [id])
+  status           String @default("Pending")
+  currentLat       Float?
+  currentLng       Float?
+  routeHistoryJson String? // JSON string for route history
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model Vehicle {
+  id                 String   @id @default(uuid())
+  driverId           String
+  driver             Driver   @relation(fields: [driverId], references: [id])
+  registrationNumber String   @unique
+  vehicleType        String
+  capacity           Float?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  trips Trip[]
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id])
+  amount        Float
+  status        String
+  paymentMethod String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  docType    String
+  fileUrl    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

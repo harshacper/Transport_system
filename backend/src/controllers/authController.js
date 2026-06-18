@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Company = require('../models/Company');
-const Driver = require('../models/Driver');
+const bcrypt = require('bcryptjs');
+const prisma = require('../config/prisma');
 
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -16,37 +15,41 @@ const registerCompany = async (req, res) => {
   const { email, password, companyName, ownerName, gstNumber, phone, address } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({
-      email,
-      password,
-      role: 'Company',
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: 'Company',
+        company: {
+          create: {
+            companyName,
+            ownerName,
+            gstNumber,
+            phone,
+            address,
+          }
+        }
+      },
+      include: {
+        company: true
+      }
     });
 
-    if (user) {
-      const company = await Company.create({
-        userId: user._id,
-        companyName,
-        ownerName,
-        gstNumber,
-        phone,
-        address,
-      });
-
-      res.status(201).json({
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        companyDetails: company,
-        token: generateToken(user._id, user.role),
-      });
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
-    }
+    res.status(201).json({
+      _id: user.id,
+      email: user.email,
+      role: user.role,
+      companyDetails: user.company,
+      token: generateToken(user.id, user.role),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -59,38 +62,43 @@ const registerDriver = async (req, res) => {
   const { email, password, fullName, phone, aadhaarNumber, drivingLicenseNumber, bankDetails, upiId } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
+    const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({
-      email,
-      password,
-      role: 'Driver',
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: 'Driver',
+        driver: {
+          create: {
+            fullName,
+            phone,
+            aadhaarNumber,
+            drivingLicenseNumber,
+            bankAccountNo: bankDetails?.accountNo,
+            bankIfsc: bankDetails?.ifsc,
+            upiId,
+          }
+        }
+      },
+      include: {
+        driver: true
+      }
     });
 
-    if (user) {
-      const driver = await Driver.create({
-        userId: user._id,
-        fullName,
-        phone,
-        aadhaarNumber,
-        drivingLicenseNumber,
-        bankDetails,
-        upiId,
-      });
-
-      res.status(201).json({
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        driverDetails: driver,
-        token: generateToken(user._id, user.role),
-      });
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
-    }
+    res.status(201).json({
+      _id: user.id,
+      email: user.email,
+      role: user.role,
+      driverDetails: user.driver,
+      token: generateToken(user.id, user.role),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -103,23 +111,20 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { company: true, driver: true }
+    });
 
-    if (user && (await user.matchPassword(password))) {
-      
-      let details = null;
-      if (user.role === 'Company') {
-        details = await Company.findOne({ userId: user._id });
-      } else if (user.role === 'Driver') {
-        details = await Driver.findOne({ userId: user._id });
-      }
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const details = user.role === 'Company' ? user.company : user.driver;
 
       res.json({
-        _id: user._id,
+        _id: user.id,
         email: user.email,
         role: user.role,
         details,
-        token: generateToken(user._id, user.role),
+        token: generateToken(user.id, user.role),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -134,16 +139,19 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
-    let details = null;
-    
-    if (user.role === 'Company') {
-      details = await Company.findOne({ userId: user._id });
-    } else if (user.role === 'Driver') {
-      details = await Driver.findOne({ userId: user._id });
-    }
+    // req.user could have _id or id depending on the auth middleware
+    const userId = req.user._id || req.user.id;
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      include: { company: true, driver: true }
+    });
     
     if (user) {
+      const details = user.role === 'Company' ? user.company : user.driver;
+      delete user.password;
+      delete user.company;
+      delete user.driver;
+
       res.json({
         user,
         details
