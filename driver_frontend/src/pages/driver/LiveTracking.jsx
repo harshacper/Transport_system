@@ -48,7 +48,7 @@ const LiveTracking = () => {
         });
         const inProgress = res.data.filter(o => o.status === 'In Progress');
         setOrders(inProgress);
-        if (inProgress.length > 0) setSelectedOrderId(inProgress[0]._id);
+        if (inProgress.length > 0) setSelectedOrderId(inProgress[0].id);
       } catch (err) {
         console.error(err);
       }
@@ -70,7 +70,7 @@ const LiveTracking = () => {
   // Fetch real road route
   useEffect(() => {
     const fetchRouteInfo = async () => {
-      const order = orders.find(o => o._id === selectedOrderId);
+      const order = orders.find(o => o.id === selectedOrderId);
       if (!order) return;
       
       try {
@@ -178,7 +178,7 @@ const LiveTracking = () => {
         >
           {orders.length === 0 && <option value="">No active trips found</option>}
           {orders.map(o => (
-            <option key={o._id} value={o._id}>
+            <option key={o.id} value={o.id}>
               {o.companyId?.companyName} • {o.pickupLocation.address} to {o.dropLocation.address}
             </option>
           ))}

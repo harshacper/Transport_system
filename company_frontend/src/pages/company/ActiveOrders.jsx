@@ -44,8 +44,8 @@ const ActiveOrders = () => {
             </thead>
             <tbody>
               {orders.map(order => (
-                <tr key={order._id} className="border-b hover:bg-gray-50">
-                  <td className="p-3 text-sm text-gray-500">{order._id.substring(0, 8)}...</td>
+                <tr key={order.id} className="border-b hover:bg-gray-50">
+                  <td className="p-3 text-sm text-gray-500">{order.id.substring(0, 8)}...</td>
                   <td className="p-3 text-sm text-gray-800">{order.pickupLocation.address}</td>
                   <td className="p-3 text-sm text-gray-800">{order.dropLocation.address}</td>
                   <td className="p-3 text-sm text-gray-600">{order.materialType} ({order.materialWeight})</td>

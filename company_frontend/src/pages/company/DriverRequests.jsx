@@ -14,7 +14,7 @@ const DriverRequests = () => {
         const userStr = localStorage.getItem('user');
         if(userStr) {
           const userObj = JSON.parse(userStr);
-          setCompanyId(userObj._id); // Assuming Company uses userId as their company login identifier, or we can fetch it. Let's just use the profile to get company ID.
+          setCompanyId(userObj.id); // Assuming Company uses userId as their company login identifier, or we can fetch it. Let's just use the profile to get company ID.
         }
 
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/company/requests`, {
@@ -52,7 +52,7 @@ const DriverRequests = () => {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/approve`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setRequests(requests.filter(r => r._id !== orderId));
+      setRequests(requests.filter(r => r.id !== orderId));
       alert('Driver Approved! Trip Started.');
     } catch (error) {
       alert(error.response?.data?.message || 'Error approving driver');
@@ -71,9 +71,9 @@ const DriverRequests = () => {
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {requests.map(req => (
-            <div key={req._id} className="border border-gray-200 rounded-lg p-5 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow">
+            <div key={req.id} className="border border-gray-200 rounded-lg p-5 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow">
               <div className="flex-1 w-full md:w-auto mb-4 md:mb-0">
-                <h3 className="font-bold text-lg text-gray-800">Order #{req._id.substring(0, 8)}</h3>
+                <h3 className="font-bold text-lg text-gray-800">Order #{req.id.substring(0, 8)}</h3>
                 <p className="text-sm text-gray-500 mt-1">
                   <strong>Pickup:</strong> {req.pickupLocation.address} <br/>
                   <strong>Drop:</strong> {req.dropLocation.address}
@@ -93,7 +93,7 @@ const DriverRequests = () => {
               <div className="flex flex-col space-y-2 w-full md:w-48 text-right">
                 <span className="text-lg font-bold text-blue-600">₹{req.estimatedCost}</span>
                 <button 
-                  onClick={() => handleApprove(req._id)}
+                  onClick={() => handleApprove(req.id)}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors w-full">
                   Approve Driver
                 </button>

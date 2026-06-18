@@ -33,7 +33,7 @@ const AcceptedOrders = () => {
       ) : (
         <div className="space-y-6">
           {orders.map(order => (
-            <div key={order._id} className="border border-gray-200 rounded-lg p-5">
+            <div key={order.id} className="border border-gray-200 rounded-lg p-5">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-bold text-lg">{order.companyId?.companyName || 'Unknown Company'}</h3>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${

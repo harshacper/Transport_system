@@ -38,7 +38,7 @@ const AvailableOrders = () => {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/accept`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setOrders(orders.filter(o => o._id !== orderId));
+      setOrders(orders.filter(o => o.id !== orderId));
       alert('Order Accepted! Awaiting Company Approval.');
     } catch (error) {
       alert(error.response?.data?.message || 'Error accepting order');
@@ -55,7 +55,7 @@ const AvailableOrders = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {orders.map(order => (
-            <div key={order._id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+            <div key={order.id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="font-bold text-lg text-gray-800">{order.companyId?.companyName}</h3>
@@ -89,7 +89,7 @@ const AvailableOrders = () => {
                   <span className="font-semibold">{order.materialType}</span> • {order.materialWeight}
                 </div>
                 <button 
-                  onClick={() => handleAccept(order._id)}
+                  onClick={() => handleAccept(order.id)}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                   Accept Order
                 </button>

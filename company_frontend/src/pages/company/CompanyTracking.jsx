@@ -44,7 +44,7 @@ const CompanyTracking = () => {
         });
         const inProgress = res.data.filter(o => o.status === 'In Progress');
         setOrders(inProgress);
-        if (inProgress.length > 0) setSelectedOrderId(inProgress[0]._id);
+        if (inProgress.length > 0) setSelectedOrderId(inProgress[0].id);
       } catch (err) {
         console.error(err);
       }
@@ -76,7 +76,7 @@ const CompanyTracking = () => {
   // Fetch real road route
   useEffect(() => {
     const fetchRouteInfo = async () => {
-      const order = orders.find(o => o._id === selectedOrderId);
+      const order = orders.find(o => o.id === selectedOrderId);
       if (!order) return;
       
       try {
@@ -130,7 +130,7 @@ const CompanyTracking = () => {
     }
   }, [selectedOrderId, orders]);
 
-  const selectedOrder = orders.find(o => o._id === selectedOrderId);
+  const selectedOrder = orders.find(o => o.id === selectedOrderId);
   
   // Center is driver location, or route start, or default to India
   const mapCenter = driverLocation || (routePath ? { lat: routePath[0][0], lng: routePath[0][1] } : { lat: 20.5937, lng: 78.9629 });
@@ -149,7 +149,7 @@ const CompanyTracking = () => {
         >
           {orders.length === 0 && <option value="">No 'In Progress' trips available</option>}
           {orders.map(o => (
-            <option key={o._id} value={o._id}>
+            <option key={o.id} value={o.id}>
               {o.pickupLocation.address} to {o.dropLocation.address} (₹{o.estimatedCost})
             </option>
           ))}

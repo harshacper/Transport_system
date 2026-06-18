@@ -17,28 +17,34 @@ const createOrder = async (req, res) => {
       charges, billingMethod, extraNotes
     } = req.body;
 
+    const parsedMaterialWeight = parseFloat(materialWeight) || 0;
+    const parsedNumberOfVehicles = parseInt(numberOfVehicles, 10) || 1;
+    const parsedLoadingCharge = parseFloat(charges?.loading) || 0;
+    const parsedUnloadingCharge = parseFloat(charges?.unloading) || 0;
+    const parsedTollCharge = parseFloat(charges?.toll) || 0;
+
     const basePrice = 5000;
-    const weightPrice = materialWeight * 10;
-    const estimatedCost = basePrice + weightPrice + (charges?.loading || 0) + (charges?.unloading || 0) + (charges?.toll || 0);
+    const weightPrice = parsedMaterialWeight * 10;
+    const estimatedCost = basePrice + weightPrice + parsedLoadingCharge + parsedUnloadingCharge + parsedTollCharge;
 
     const order = await prisma.order.create({
       data: {
         companyId: company.id,
-        pickupAddress: pickupLocation.address,
-        pickupLat: pickupLocation.lat,
-        pickupLng: pickupLocation.lng,
-        dropAddress: dropLocation.address,
-        dropLat: dropLocation.lat,
-        dropLng: dropLocation.lng,
+        pickupAddress: pickupLocation?.address || '',
+        pickupLat: pickupLocation?.lat ? parseFloat(pickupLocation.lat) : null,
+        pickupLng: pickupLocation?.lng ? parseFloat(pickupLocation.lng) : null,
+        dropAddress: dropLocation?.address || '',
+        dropLat: dropLocation?.lat ? parseFloat(dropLocation.lat) : null,
+        dropLng: dropLocation?.lng ? parseFloat(dropLocation.lng) : null,
         materialType,
-        materialWeight,
+        materialWeight: parsedMaterialWeight,
         vehicleTypeRequired,
-        numberOfVehicles: numberOfVehicles || 1,
+        numberOfVehicles: parsedNumberOfVehicles,
         pickupDate: new Date(pickupDate),
         deliveryDate: new Date(deliveryDate),
-        loadingCharge: charges?.loading || 0,
-        unloadingCharge: charges?.unloading || 0,
-        tollCharge: charges?.toll || 0,
+        loadingCharge: parsedLoadingCharge,
+        unloadingCharge: parsedUnloadingCharge,
+        tollCharge: parsedTollCharge,
         billingMethod,
         estimatedCost,
         extraNotes
